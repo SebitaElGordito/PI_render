@@ -5,6 +5,5 @@ uvicorn
 seaborn
 matplotlib
 scikit-learn
-nltk
 pyarrow
 fastparquet

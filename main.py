@@ -37,8 +37,3 @@ def best_developer_year(year: int):
 @app.get('/developer_reviews_analisis')
 def developer_reviews_analysis(developer: str):
     return api_functions.developer_reviews_analysis(developer)
-
-
-@app.get('/recomendacion_juego')
-def recomendacion_juego(id_producto: int):
-    return api_functions.recomendacion_juego(id_producto)
