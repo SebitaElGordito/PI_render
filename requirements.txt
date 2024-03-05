@@ -1,0 +1,10 @@
+fastapi
+pandas
+numpy
+uvicorn
+seaborn
+matplotlib
+scikit-learn
+nltk
+pyarrow
+fastparquet
