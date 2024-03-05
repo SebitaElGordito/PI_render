@@ -3,8 +3,11 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 import pandas as pd
 import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
 
 df_developer = pd.read_parquet('Datasets/def_developer.parquet')
+df_user_data_final = pd.read_parquet('Datasets/def_user_data.parquet')
+
 def presentacion():
     return '''
     <html>
@@ -50,7 +53,7 @@ def presentacion():
                 <div class="boton">
                     <p>INSTRUCCIONES:</p>
                     <p>Presione <span style="color: #9c6e12; font-size: 50px "><botton class="boton">
-                        <a href="http://127.0.0.1:8000/docs">AQUÍ</a>
+                        <a href="https://pi-render-tt44.onrender.com/docs">AQUÍ</a>
                     </botton></span> para ser redirigido a la API</p>
                 </div>
             </main>
@@ -80,6 +83,24 @@ def developer(desarrolladora):
 
     return resultados
 
+def user_data(usuario):
+    user_filtrado = df_user_data_final[df_user_data_final['user_id'] == usuario]
+    if not user_filtrado.empty:
+        # Convertir los valores de NumPy a tipos nativos de Python usando int() y float()
+        cantidad_dinero = int(user_filtrado['total_spent'].iloc[0])
+        items_totales = int(user_filtrado['items_count'].iloc[0])
+        total_recomendaciones = float(user_filtrado['recommend'].iloc[0])
+
+        return {
+            'Usuario': usuario, 
+            'Cantidad de dinero gastado': cantidad_dinero, 
+            'Porcentaje de recomendación': total_recomendaciones, 
+            'Items totales en biblioteca': items_totales
+        }
+    else:
+        return {'Error': 'Usuario no encontrado'}
+
+
 
 # Se instancia la aplicación
 app = FastAPI()
@@ -95,6 +116,9 @@ def home():
 def developer(desarrollador: str):
     return developer(desarrollador)
 
+@app.get('/user_data')
+def user_data(usuario: str):
+    return user_data(usuario)
 
 
 
