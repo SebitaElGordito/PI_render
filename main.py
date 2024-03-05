@@ -4,7 +4,6 @@ from fastapi.responses import HTMLResponse
 import pandas as pd
 
 df_developer = pd.read_parquet('Datasets/def_developer.parquet')
-df_user_data_final = pd.read_parquet('Datasets/def_user_data.parquet')
 df_user_genre = pd.read_parquet('Datasets/def_user_for_genre.parquet')
 
 
@@ -84,27 +83,6 @@ def developer(desarrolladora):
     return resultados
 
 
-
-def user_data(usuario):
-    user_filtrado = df_user_data_final[df_user_data_final['user_id'] == usuario]
-    if not user_filtrado.empty:
-        # Convertir los valores de NumPy a tipos nativos de Python usando int() y float()
-        cantidad_dinero = int(user_filtrado['total_spent'].iloc[0])
-        items_totales = int(user_filtrado['items_count'].iloc[0])
-        total_recomendaciones = float(user_filtrado['recommend'].iloc[0])
-
-        return {
-            'Usuario': usuario, 
-            'Cantidad de dinero gastado': cantidad_dinero, 
-            'Porcentaje de recomendación': total_recomendaciones, 
-            'Items totales en biblioteca': items_totales
-        }
-    else:
-        return {'Error': 'Usuario no encontrado'}
-
-
-
-
 def user_for_genre(genero):
     df=pd.DataFrame(df_user_genre)
     
@@ -137,11 +115,6 @@ def home():
 @app.get(path = '/developer')
 def developer(desarrollador: str):
     return developer(desarrollador)
-
-
-@app.get('/user_data')
-def user_data(usuario: str):
-    return user_data(usuario)
     
 
 @app.get(path = '/user_for_genre')
