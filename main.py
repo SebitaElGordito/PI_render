@@ -134,29 +134,31 @@ def bestdeveloperyear(year):
 def recomendacionjuego(id_producto):
     # Filtrar los juegos que coinciden con el nombre dado
     juego_filtrado = df_modelo_recomendacion[df_modelo_recomendacion['item_id'] == id_producto]
+    if not juego_filtrado.empty:
+        # Obtener los géneros del juego dado
+        genero_juego = set(juego_filtrado['genres'].str.split(',').explode())
 
-    # Obtener los géneros del juego dado
-    genero_juego = set(juego_filtrado['genres'].str.split(',').explode())
+        # Filtrar los juegos que tienen al menos 1 género en común con el juego dado
+        juegos_recomendados = df_modelo_recomendacion[df_modelo_recomendacion['genres'].apply(lambda x: len(set(x.split(',')).intersection(genero_juego)) >= 1)]
 
-    # Filtrar los juegos que tienen al menos 1 género en común con el juego dado
-    juegos_recomendados = df_modelo_recomendacion[df_modelo_recomendacion['genres'].apply(lambda x: len(set(x.split(',')).intersection(genero_juego)) >= 1)]
+        # Calcular la similitud del coseno entre los vectores de géneros de los juegos
+        juegos_recomendados['genres_vector'] = juegos_recomendados['genres'].apply(lambda x: np.array([1 if genre in x else 0 for genre in genero_juego]))
+        juego_filtrado['genres_vector'] = juego_filtrado['genres'].apply(lambda x: np.array([1 if genre in x else 0 for genre in genero_juego]))
+        juegos_recomendados['similarity'] = juegos_recomendados.apply(lambda row: cosine_similarity([row['genres_vector']], [juego_filtrado['genres_vector'].iloc[0]])[0][0], axis=1)
 
-    # Calcular la similitud del coseno entre los vectores de géneros de los juegos
-    juegos_recomendados['genres_vector'] = juegos_recomendados['genres'].apply(lambda x: np.array([1 if genre in x else 0 for genre in genero_juego]))
-    juego_filtrado['genres_vector'] = juego_filtrado['genres'].apply(lambda x: np.array([1 if genre in x else 0 for genre in genero_juego]))
-    juegos_recomendados['similarity'] = juegos_recomendados.apply(lambda row: cosine_similarity([row['genres_vector']], [juego_filtrado['genres_vector'].iloc[0]])[0][0], axis=1)
+        # Ordenar los juegos por similitud y recomendación en orden descendente
+        juegos_recomendados = juegos_recomendados.sort_values(['similarity', 'recommend_y'], ascending=[False, False])
 
-    # Ordenar los juegos por similitud y recomendación en orden descendente
-    juegos_recomendados = juegos_recomendados.sort_values(['similarity', 'recommend_y'], ascending=[False, False])
+        # Seleccionar los 5 juegos con mayor similitud y recomendación
+        top_juegos_recomendados = juegos_recomendados.head(5)
 
-    # Seleccionar los 5 juegos con mayor similitud y recomendación
-    top_juegos_recomendados = juegos_recomendados.head(5)
+        # Obtener la lista de nombres de los juegos recomendados junto con el desarrollador
+        juegos_recomendados_dict = {}
+        juegos_recomendados_dict['Debido a que te gustó ' + juego_filtrado['title'].iloc[0] + ', también podría interesarte...'] = top_juegos_recomendados[['title']].to_dict(orient='records')
 
-    # Obtener la lista de nombres de los juegos recomendados junto con el desarrollador
-    juegos_recomendados_dict = {}
-    juegos_recomendados_dict['Debido a que te gustó ' + juego_filtrado['title'].iloc[0] + ', también podría interesarte...'] = top_juegos_recomendados[['title']].to_dict(orient='records')
-
-    return juegos_recomendados_dict
+        return juegos_recomendados_dict
+    else:
+        return {'Error': 'id de producto no encontrado... pruebe con otro id de producto, por favor'}
 
 
 
