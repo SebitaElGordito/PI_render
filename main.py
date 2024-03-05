@@ -1,5 +1,5 @@
 # Importaciones
-from fastapi import FastAPI, Query
+from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 import api_functions 
 
@@ -32,8 +32,3 @@ def user_for_genre(genero: str):
 @app.get(path = '/best_developer_year')
 def best_developer_year(year: int):
     return api_functions.best_developer_year(year)
-
-
-@app.get('/developer_reviews_analisis')
-def developer_reviews_analysis(developer: str):
-    return api_functions.developer_reviews_analysis(developer)

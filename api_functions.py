@@ -11,7 +11,6 @@ df_developer = pd.read_parquet('Datasets/def_developer.parquet')
 df_user_data_final = pd.read_parquet('Datasets/def_user_data.parquet')
 df_user_genre = pd.read_parquet('Datasets/def_user_for_genre.parquet')
 df_best_developer = pd.read_parquet('Datasets/def_best_developer_year.parquet')
-df_developer_reviews = pd.read_parquet('Datasets/def_developer_reviews_analysis.parquet')
 
 
 def presentacion():
@@ -150,22 +149,4 @@ def best_developer_year(year):
         {"Puesto 3": top_developers.iloc[2]['developer'], "Recomendaciones": int(top_developers.iloc[2]['recommend'])},
     ]
 
-    return resultado
-
-
-
-def developer_reviews_analysis(developer):
-    df_filtrado = df_developer_reviews[df_developer_reviews['developer'] == developer]
-    
-    cantidad_positivos = df_filtrado[df_filtrado['sentiment_analysis'] == 2].shape[0]
-    cantidad_negativos = df_filtrado[df_filtrado['sentiment_analysis'] == 0].shape[0]
-    
-    resultado = {
-        "Desarrolladora": developer,
-        "Análisis de sentimiento": {
-            "Positivos": cantidad_positivos,
-            "Negativos": cantidad_negativos
-        }
-    }
-    
     return resultado
