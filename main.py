@@ -5,6 +5,7 @@ import pandas as pd
 
 df_developer = pd.read_parquet('Datasets/def_developer.parquet')
 df_user_data_final = pd.read_parquet('Datasets/def_user_data.parquet')
+df_user_genre = pd.read_parquet('Datasets/def_user_for_genre.parquet')
 df_best_developer = pd.read_parquet('Datasets/def_best_developer_year.parquet')
 
 
@@ -102,10 +103,23 @@ def userdata(usuario):
         return {'Error': 'Usuario no encontrado'}
 
 
+def userforgenre(genero):
+    df=pd.DataFrame(df_user_genre)
+    
+    # Filtrar por género
+    df_genero = df[df['genres'] == genero]
 
+    # Usuario con más horas jugadas por género
+    usuario_mas_horas = df_genero.groupby('user_id')['playtime_forever'].sum().idxmax()
+    usuario_mas_horas_df = df_genero[df_genero['user_id'] == usuario_mas_horas].iloc[0]
 
+    # Filtrar por el usuario con más horas jugadas y calcular las horas jugadas por año de lanzamiento
+    df_usuario_mas_horas = df_genero[df_genero['user_id'] == usuario_mas_horas]
+    horas_por_anio = df_usuario_mas_horas.groupby('release_year')['playtime_forever'].sum().to_dict()
 
-
+    return {"Usuario con más horas jugadas por género": usuario_mas_horas_df['user_id'], 
+            "Género": usuario_mas_horas_df['genres'], 
+            "Horas jugadas por año de lanzamiento" : horas_por_anio}
 
 
 
@@ -152,11 +166,9 @@ def user_data(usuario: str):
     return userdata(usuario)
     
 
-
-
-
-
-
+@app.get(path = '/user_for_genre')
+def user_for_genre(genero: str):
+    return userforgenre(genero)
 
 
 @app.get(path = '/best_developer_year')
