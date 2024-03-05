@@ -22,7 +22,6 @@ def presentacion():
             <title>API Steam</title>
             <style>
                 body {
-                    background: url(https://github.com/SebitaElGordito/PI_render/blob/main/Images/steam_banner.jpeg?raw=true);
                     font-family: 'Montserrat', sans-serif;
                     position: center;
                     text-align: center;
@@ -43,7 +42,7 @@ def presentacion():
                 }
                 .boton{
                     margin-top: 500px;
-                    color: white;
+                    color: #9c6e12;
                     text-align: center;
                     font-size: 36px;
                 }
