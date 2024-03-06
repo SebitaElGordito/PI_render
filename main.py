@@ -9,6 +9,8 @@ df_developer = pd.read_parquet('Datasets/def_developer.parquet')
 df_user_data_final = pd.read_parquet('Datasets/def_user_data.parquet')
 df_modelo_recomendacion = pd.read_parquet('Datasets/def_recomendacion_juego.parquet')
 df_best_developer = pd.read_parquet('Datasets/def_best_developer_year.parquet')
+df_user_genre = pd.read_parquet('Datasets/def_user_for_genre.parquet')
+df_developer_reviews = pd.read_parquet('Datasets/def_developer_reviews_analysis.parquet')
 
 
 def presentacion():
@@ -67,24 +69,27 @@ def presentacion():
 
 def develop(desarrollador):
     developer_filtrado = df_developer[df_developer['developer'] == desarrollador]
-    cantidad_anio = developer_filtrado.groupby('release_year')['item_id'].count()
-    gratis_anio = (developer_filtrado[developer_filtrado['price'] == 0.0].groupby('release_year')['item_id'].count() / cantidad_anio * 100).fillna(0).astype(int)
+    if not developer_filtrado.empty:
+        cantidad_anio = developer_filtrado.groupby('release_year')['item_id'].count()
+        gratis_anio = (developer_filtrado[developer_filtrado['price'] == 0.0].groupby('release_year')['item_id'].count() / cantidad_anio * 100).fillna(0).astype(int)
 
-    # Convertir los valores de las Series a listas
-    cantidad_anio_list = cantidad_anio.tolist()
-    gratis_anio_list = gratis_anio.tolist()
+        # Convertir los valores de las Series a listas
+        cantidad_anio_list = cantidad_anio.tolist()
+        gratis_anio_list = gratis_anio.tolist()
 
-    # Convertir los índices a una lista
-    anios_list = cantidad_anio.index.tolist()
+        # Convertir los índices a una lista
+        anios_list = cantidad_anio.index.tolist()
 
-    # Crear un diccionario con los resultados
-    resultados = {
-        'Año': anios_list,
-        'Cantidad de juegos': cantidad_anio_list,
-        '% juegos gratis': gratis_anio_list
-    }
+        # Crear un diccionario con los resultados
+        resultados = {
+            'Año': anios_list,
+            'Cantidad de juegos': cantidad_anio_list,
+            '% juegos gratis': gratis_anio_list
+        }
 
-    return resultados
+        return resultados
+    else:
+        return {'Error': 'Developer no encontrado... intente con otro developer, por favor'}
 
 
 def userdata(usuario):
@@ -105,7 +110,25 @@ def userdata(usuario):
         return {'Error': 'Usuario no encontrado'}
 
 
+def userforgenre(genero):
+    df=pd.DataFrame(df_user_genre)
+    
+    # Filtrar por género
+    df_genero = df[df['genres'] == genero]
+    if not df_genero.empty:
+        # Usuario con más horas jugadas por género
+        usuario_mas_horas = df_genero.groupby('user_id')['playtime_forever'].sum().idxmax()
+        usuario_mas_horas_df = df_genero[df_genero['user_id'] == usuario_mas_horas].iloc[0]
 
+        # Filtrar por el usuario con más horas jugadas y calcular las horas jugadas por año de lanzamiento
+        df_usuario_mas_horas = df_genero[df_genero['user_id'] == usuario_mas_horas]
+        horas_por_anio = df_usuario_mas_horas.groupby('release_year')['playtime_forever'].sum().to_dict()
+
+        return {"Usuario con más horas jugadas por género": usuario_mas_horas_df['user_id'], 
+                "Género": usuario_mas_horas_df['genres'], 
+                "Horas jugadas por año de lanzamiento" : horas_por_anio}
+    else:
+        return {'Error': 'género no encontrado o sin datos que mostrar... pruebe con otro género, por favor'}
 
 
 def bestdeveloperyear(year):
@@ -113,21 +136,42 @@ def bestdeveloperyear(year):
     
     # Filtrar por año y recomendaciones True
     df_year = df[(df['release_year'] == year) & (df['recommend'] == True)]
+    if not df_year.empty:
+        # Calcular la cantidad de recomendaciones por desarrollador
+        developer_recommendations = df_year.groupby('developer')['recommend'].count().reset_index()
 
-    # Calcular la cantidad de recomendaciones por desarrollador
-    developer_recommendations = df_year.groupby('developer')['recommend'].count().reset_index()
+        # Ordenar en orden descendente y obtener el top 3
+        top_developers = developer_recommendations.nlargest(3, 'recommend')
 
-    # Ordenar en orden descendente y obtener el top 3
-    top_developers = developer_recommendations.nlargest(3, 'recommend')
+        # Crear la lista de resultados con los puestos y los desarrolladores
+        resultado = [
+            {"Puesto 1": top_developers.iloc[0]['developer'], "Recomendaciones": int(top_developers.iloc[0]['recommend'])},
+            {"Puesto 2": top_developers.iloc[1]['developer'], "Recomendaciones": int(top_developers.iloc[1]['recommend'])},
+            {"Puesto 3": top_developers.iloc[2]['developer'], "Recomendaciones": int(top_developers.iloc[2]['recommend'])},
+        ]
 
-    # Crear la lista de resultados con los puestos y los desarrolladores
-    resultado = [
-        {"Puesto 1": top_developers.iloc[0]['developer'], "Recomendaciones": int(top_developers.iloc[0]['recommend'])},
-        {"Puesto 2": top_developers.iloc[1]['developer'], "Recomendaciones": int(top_developers.iloc[1]['recommend'])},
-        {"Puesto 3": top_developers.iloc[2]['developer'], "Recomendaciones": int(top_developers.iloc[2]['recommend'])},
-    ]
+        return resultado
+    else:
+        return {'Error': 'año no encontrado o sin datos que mostrar... pruebe con otro año, por favor'}
+    
 
-    return resultado
+def developerreviewsanalysis(developer):
+    df_filtrado = df_developer_reviews[df_developer_reviews['developer'] == developer]
+    if not df_filtrado.empty:
+        cantidad_positivos = df_filtrado[df_filtrado['sentiment_analysis'] == 2].shape[0]
+        cantidad_negativos = df_filtrado[df_filtrado['sentiment_analysis'] == 0].shape[0]
+    
+        resultado = {
+            "Desarrolladora": developer,
+            "Análisis de sentimiento": {
+                "Positivos": cantidad_positivos,
+                "Negativos": cantidad_negativos
+            }
+        }
+    
+        return resultado
+    else:
+        return {'Error': 'developer no encontrado o sin datos que mostrar... pruebe con otro developer, por favor'}
 
 
 
@@ -180,14 +224,19 @@ def developer(desarrollador: str):
 @app.get('/user_data')
 def user_data(usuario: str):
     return userdata(usuario)
-    
 
-
+@app.get(path = '/userforgenre')
+def user_for_genre(genero: str):
+    return userforgenre(genero)
 
 
 @app.get(path = '/best_developer_year')
 def best_developer_year(year: int):
     return bestdeveloperyear(year)
+
+@app.get('/developer_reviews_analysis')
+def developer_reviews_analysis(developer: str):
+    return developerreviewsanalysis(developer)
 
 
 @app.get('/recomendacion_juego')
