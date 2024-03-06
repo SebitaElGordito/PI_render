@@ -206,7 +206,7 @@ def developer(desarrollador: str):
 def user_data(usuario: str):
     return userdata(usuario)
 
-@app.get(path = '/userforgenre')
+@app.get(path = '/user_for_genre')
 def user_for_genre(genero: str):
     return userforgenre(genero)
 
