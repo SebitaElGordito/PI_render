@@ -10,7 +10,7 @@ df_user_data_final = pd.read_parquet('Datasets/def_user_data.parquet')
 df_modelo_recomendacion = pd.read_parquet('Datasets/def_recomendacion_juego.parquet')
 df_best_developer = pd.read_parquet('Datasets/def_best_developer_year.parquet')
 df_user_genre = pd.read_parquet('Datasets/def_user_for_genre.parquet')
-df_developer_reviews = pd.read_parquet('Datasets/def_developer_reviews_analysis.parquet')
+
 
 
 def presentacion():
@@ -153,25 +153,6 @@ def bestdeveloperyear(year):
         return resultado
     else:
         return {'Error': 'año no encontrado o sin datos que mostrar... pruebe con otro año, por favor'}
-    
-
-def developerreviewsanalysis(developer):
-    df_filtrado = df_developer_reviews[df_developer_reviews['developer'] == developer]
-    if not df_filtrado.empty:
-        cantidad_positivos = df_filtrado[df_filtrado['sentiment_analysis'] == 2].shape[0]
-        cantidad_negativos = df_filtrado[df_filtrado['sentiment_analysis'] == 0].shape[0]
-    
-        resultado = {
-            "Desarrolladora": developer,
-            "Análisis de sentimiento": {
-                "Positivos": cantidad_positivos,
-                "Negativos": cantidad_negativos
-            }
-        }
-    
-        return resultado
-    else:
-        return {'Error': 'developer no encontrado o sin datos que mostrar... pruebe con otro developer, por favor'}
 
 
 
@@ -233,10 +214,6 @@ def user_for_genre(genero: str):
 @app.get(path = '/best_developer_year')
 def best_developer_year(year: int):
     return bestdeveloperyear(year)
-
-@app.get('/developer_reviews_analysis')
-def developer_reviews_analysis(developer: str):
-    return developerreviewsanalysis(developer)
 
 
 @app.get('/recomendacion_juego')
